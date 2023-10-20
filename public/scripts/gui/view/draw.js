@@ -1,16 +1,12 @@
 import * as THREE from 'three';
 //import Stats from "Stats" 
-import { GUI } from "GUI" 
+//import { GUI } from "GUI" 
 import { TrackballControls } from "TrackballControls"
-import {getThreeSurfaceObj, getCenter,move} from "./drawTools/tools.js"
-
-import { Rhino3dmLoader } from '../node_modules/three/examples/jsm/loaders/3DMLoader.js';
-import { GLTFLoader } from '../node_modules/three/examples/jsm/loaders/GLTFLoader.js';
-import { RGBELoader } from '../node_modules/three/examples/jsm/loaders/RGBELoader.js';
+import {createContour} from "./contour.js"
+import {getHimmelbauMultiPolygon} from "./multiPolygon.js"
 
 const elements = {
   draw: document.getElementById("draw"),
-  gui: document.getElementById("gui"),
   main: document.querySelector("main"),
 }
 
@@ -52,11 +48,11 @@ export const init = () => {
   scene = new THREE.Scene();
 
   //camera
-  perspectiveCamera = new THREE.PerspectiveCamera(45, aspect, 1, 1000);
+//  perspectiveCamera = new THREE.PerspectiveCamera(45, aspect, 1, 1000);
   orthographicCamera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 1, 1000 );
 
-  perspectiveCamera.up.set( 0, 0, 1 );
-  perspectiveCamera.position.set( 100, 100, 100 );
+//  perspectiveCamera.up.set( 0, 0, 1 );
+//  perspectiveCamera.position.set( 100, 100, 100 );
 
   orthographicCamera.up.set( 0, 0, 1 );
   orthographicCamera.position.set( 100, 100, 100 );
@@ -79,6 +75,11 @@ export const init = () => {
   scene.add(mesh)
   meshList.add(mesh)
 
+  const d3MultiPolygon = getHimmelbauMultiPolygon()
+  const contour = createContour(d3MultiPolygon)
+  scene.add(contour)
+  meshList.add(contour)
+
   //axes
   const axes = new THREE.AxesHelper(100);
   scene.add(axes);
@@ -98,30 +99,11 @@ export const init = () => {
   directionalLightO.position.set(100,100,100)
   directionalLightP.visible = true
   directionalLightO.visible = false
-  perspectiveCamera.add(directionalLightP)
   orthographicCamera.add(directionalLightO)
-  scene.add(perspectiveCamera)
   scene.add(orthographicCamera)
  
-  //gui
-	const gui = new GUI({autoPlace:false});
-	gui.add( params, 'orthographicCamera' ).name( 'use orthographic' ).onChange( value=> {
-	  controls.dispose()
-    if(value){
-      directionalLightP.visible = false 
-      directionalLightO.visible = true 
-      createControls(orthographicCamera)
-    }
-    else{
-      directionalLightP.visible = true 
-      directionalLightO.visible = false 
-      createControls(perspectiveCamera)
-    }
-	})
-  elements.gui.appendChild(gui.domElement);
+  createControls(orthographicCamera)
 
-  //camera contorl
-	createControls(perspectiveCamera)
 
 }
 
@@ -141,13 +123,8 @@ const animate = () => {
 }
 
 const render = () => {
-	const camera = ( params.orthographicCamera ) ? orthographicCamera : perspectiveCamera;
+	const camera =  orthographicCamera;
 	renderer.render( scene, camera );
-}
-
-export const clear = () => {
-  meshList.forEach(v=>scene.remove(v))
-  meshList.clear()
 }
 
 
@@ -185,20 +162,4 @@ const windowResizeFunc = () =>{
 }
 
 
-export const import3DM = () => {
- 	const loader = new Rhino3dmLoader()
-	loader.setLibraryPath( 'https://cdn.jsdelivr.net/npm/rhino3dm@7.11.1/' )
-	loader.load( 'models/3dm/Rhino_Logo.3dm',  (object) => {
-	  scene.add(object)
-    initGUI( object.userData.layers )
-  })
-}
 
-export const importGLTF = (url) =>{
-  const loader = new GLTFLoader()
-  loader.load(url, ( gltf )=> {
-    scene.add( gltf.scene )
-    meshList.add(gltf.scene)
-    render()
-  })
-}

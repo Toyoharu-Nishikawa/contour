@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en-us">
 <head>
-  <title>three test</title>
+  <title>contour</title>
   <meta charset="UTF-8"> 
   <link rel="stylesheet" type="text/css" href="./styles/index.css">
   <link rel="stylesheet" type="text/css" href="./styles/viewCube.css">
 
   <script defer src="./scripts/gui/node_modules/three/build/three.min.js"></script>
+  <script defer src="./scripts/gui/d3/d3.js"></script>
   <!--
   <script defer src="./scripts/gui/node_modules/three/examples/js/controls/OrbitControls.js"></script>
   -->
@@ -14,8 +15,6 @@
 	{
 		"imports": {
 			"three" : "./scripts/gui/node_modules/three/build/three.module.js",
-      "Stats" :"./scripts/gui/node_modules/three/examples/jsm/libs/stats.module.js",
-      "GUI"   : "./scripts/gui/node_modules/three/examples/jsm/libs/lil-gui.module.min.js",
       "TrackballControls" : "./scripts/gui/node_modules/three/examples/jsm/controls/TrackballControls.js"
 		}
 	}
@@ -27,8 +26,8 @@
 <body>
   <header>
     <div class="title">
-      <a href="/threetest/"> 
-        <h1>three test</h1>
+      <a href="/contour/"> 
+        <h1>contour</h1>
       </a>
     </div>
     <ul>
