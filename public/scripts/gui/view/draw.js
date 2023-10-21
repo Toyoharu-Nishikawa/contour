@@ -3,7 +3,16 @@ import * as THREE from 'three';
 //import { GUI } from "GUI" 
 import { TrackballControls } from "TrackballControls"
 import {createContour} from "./contour.js"
-import {getHimmelbauMultiPolygon} from "./multiPolygon.js"
+import {
+  getHimmelbauMultiPolygon,
+  getNHimmelbauMultiPolygon,
+  getCosSinPolygon,
+  getCos_SinPolygon,
+  getCos_Sin_ExpPolygon
+} from "./multiPolygon.js"
+
+//const getMultiPolygonFunc = getCos_Sin_ExpPolygon
+const getMultiPolygonFunc = getNHimmelbauMultiPolygon
 
 const elements = {
   draw: document.getElementById("draw"),
@@ -75,7 +84,10 @@ export const init = () => {
   scene.add(mesh)
   meshList.add(mesh)
 
-  const d3MultiPolygon = getHimmelbauMultiPolygon()
+  const d3MultiPolygon = getMultiPolygonFunc()
+  //const d3MultiPolygon = getHimmelbauMultiPolygon()
+  //const d3MultiPolygon = getCosSinPolygon()
+  //const d3MultiPolygon = getCos_SinPolygon()
   const contour = createContour(d3MultiPolygon)
   scene.add(contour)
   meshList.add(contour)

@@ -36,7 +36,8 @@ const colorJET20 = makeJETColorFunc(20)
 export const createContour = (d3MultiPolygon) => {
   console.log("multiPolygon",d3MultiPolygon)
 
-  const cleanedShapes = d3MultiPolygon.map((v,i,arr)=>clearnShape(v?.coordinates,arr[i+1]?.coordinates,i))
+  const cleanedShapes = d3MultiPolygon.slice(0,20).map((v,i,arr)=>clearnShape(v?.coordinates,arr[i+1]?.coordinates,i))
+  //const cleanedShapes = [d3MultiPolygon[10].coordinates]
   console.log("cleanedShapes",cleanedShapes)
   const mGroup = new THREE.Group()
   cleanedShapes.slice(0,20).forEach((v,i)=>{
@@ -61,6 +62,125 @@ export const createContour = (d3MultiPolygon) => {
     mGroup.add(sGroup)
   })
   return mGroup
+}
+
+
+const clearnShape = (layer1, layer2,i) => {
+   console.log("index",i)
+  if(layer2==undefined){
+    return layer1
+  }
+
+  const layer2PolygonIncludedList = layer2.map(v=>{
+    const l2Outline = v[0]
+    if(layer1.length==1){
+      const l1PolygonId = 0
+      console.log("l1PolygonId",l1PolygonId)
+      return l1PolygonId
+    }
+    else{
+      for(let i=0;i<layer1.length;i++){
+        const bool = P1includesP2(layer1[i][0],l2Outline)
+        if(bool){
+          const l1PolygonId = i
+          return l1PolygonId
+          break
+        }
+      }
+      console.log("Dicrimination error")
+      //return 0
+    }
+  })
+ 
+  console.log("layer2PolygonIncludedList",layer2PolygonIncludedList)
+  const layer1IncludesList = [...Array(layer1.length)].map(v=>[]) 
+  layer2PolygonIncludedList.forEach((v,i)=>[
+    layer1IncludesList[v].push(layer2[i])
+  ])
+  console.log("layer1IncludesList",layer1IncludesList)
+  const layer = layer1.flatMap((layer1Polygon,layer1Index)=>{
+    const layer2PolygonList = layer1IncludesList[layer1Index]
+    console.log("layer2PolygonList",layer2PolygonList,)
+    if(layer2PolygonList.length==0){
+      console.log("pattern A")
+      return [layer1Polygon]
+    }
+    else if(layer1Polygon.length==1){
+      console.log("pattern B")
+      const layer2PolygonOutlines = layer2PolygonList.map(v=>v[0])
+      const layer1Main = [layer1Polygon[0], ...layer2PolygonOutlines] 
+      const layer2PolygonHoles = layer2PolygonList.flatMap(v=>v.slice(1)).filter(v=>v.length>0).map(v=>[[v]])
+      console.log("layer2PolygonHoles",layer2PolygonHoles)
+      const sum = [].concat([layer1Main],...layer2PolygonHoles)
+      console.log("sum",sum)
+      return sum
+    }
+    else{
+      console.log("pattern C")
+      const layer1PolygonOutline = layer1Polygon[0]
+      const layer1HolesSet = new Set(layer1Polygon.slice(1))
+      const layer1Main = [layer1PolygonOutline]
+      const shapeList = []
+      layer2PolygonList.forEach(layer2Polygon=>{
+        layer1Main.push(layer2Polygon[0])
+        if(layer2Polygon.length>1){
+          const shapes = layer2Polygon.slice(1).map(layer2Hole=>{
+            const includesLayer1Holes = []
+            layer1HolesSet.forEach(layer1Hole=>{
+              const bool = P1includesP2(layer2Hole,layer1Hole)
+              if(bool){
+                includesLayer1Holes.push(layer1Hole)
+                layer1HolesSet.delete(layer1Hole)
+              }
+            })
+            //const includesLayer1Holes = layer1Holes.values().reduce((p,layer1Hole)=>{
+            //  const bool = P1includesP2(layer2Hole,layer1Hole)
+            //  if(bool){
+
+            //    p.push(layer1Hole)
+            //    return p
+            //  }
+            //  else{
+            //    return p
+            //  }
+            //},[])
+            return [layer2Hole, ...includesLayer1Holes]
+          })
+          shapeList.push(shapes)
+        }
+      })
+      layer1HolesSet.forEach(layer1Hole=>{
+        layer1Main.push(layer1Hole)
+      })
+
+      //layer2PolygonList.forEach(layer2Polygon=>{
+      //  layer1Main.push(layer2Polygon[0])
+      //})
+      //const shapes = layer2PolygonList.flatMap(layer2Polygon=>
+      //  layer2Polygon.slice(1).map(layer2Hole=>{
+      //    const includesLayer1Holes = layer1Holes.reduce((p,layer1Hole)=>{
+      //      const bool = P1includesP2(layer2Hole,layer1Hole)
+      //      if(bool){
+      //        p.push(layer1Hole)
+      //        return p
+      //      }
+      //      else{
+      //        return p
+      //      }
+      //    },[])
+      //    return [layer2Hole, ...includesLayer1Holes]
+      //  })
+      //)
+      console.log("layer1Main",layer1Main)
+      console.log("shapes",shapeList)
+      const sum = [].concat([layer1Main],...shapeList)
+      console.log("sum",sum)
+      return sum
+    }
+  })
+  console.log("layer",layer)
+  return layer
+
 }
 
 const polygonIncludesPoint = (polygon, point) => {
@@ -101,92 +221,14 @@ const polygonIncludesPoint = (polygon, point) => {
     }
     // ルール1,ルール2を確認することで、ルール3も確認できている。
   }
-  const msg = wn>0 ? "inside": "outside"
+  const msg = Math.abs(wn)>0 ? "inside": "outside"
   return msg 
 }
 
 const P1includesP2 = (polygon1, polygon2) => {
   const p = polygon2[0]
   const discrimination = polygonIncludesPoint(polygon1, p)
-  const bool = discrimination =="boundary" || discrimination =="inside" ? true :false
+  const bool = (discrimination =="boundary" || discrimination =="inside") ? true :false
   return bool 
 }
 
-const clearnShape = (layer1, layer2,i) => {
-   console.log("index",i)
-  if(layer2==undefined){
-    return layer1
-  }
-
-  const layer2PolygonIncludedList = layer2.map(v=>{
-    const l2Outline = v[0]
-    if(layer1.length==1){
-      const l1PolygonId = 0
-      return l1PolygonId
-    }
-    else{
-      for(let i=0;i<layer1.length;i++){
-        const bool = P1includesP2(layer1[i],l2Outline)
-        if(bool){
-          const l1PolygonId = i
-          return l1PolygonId
-          break
-        }
-      }
-    }
-  })
- 
-  const layer1IncludesList = [...Array(layer1.length)].map(v=>[]) 
-  layer2PolygonIncludedList.forEach((v,i)=>[
-    layer1IncludesList[v].push(layer2[i])
-  ])
-  console.log("layer1IncludesList",layer1IncludesList)
-  const layer = layer1.flatMap((layer1Polygon,layer1Index)=>{
-    const layer2PolygonList = layer1IncludesList[layer1Index]
-    if(layer2PolygonList.length==0){
-      console.log("pattern A")
-      return [layer1Polygon]
-    }
-    else if(layer1Polygon.length==1){
-      console.log("pattern B")
-      const layer2PolygonOutlines = layer2PolygonList.map(v=>v[0])
-      const layer1Main = [layer1Polygon[0], ...layer2PolygonOutlines] 
-      const layer2PolygonHoles = layer2PolygonList.flatMap(v=>v.slice(1)).filter(v=>v.length>0).map(v=>[[v]])
-      console.log("layer2PolygonHoles",layer2PolygonHoles)
-      const sum = [].concat([layer1Main],...layer2PolygonHoles)
-      console.log("sum",sum)
-      return sum
-    }
-    else{
-      console.log("pattern C")
-      const layer1Main = layer1Polygon
-      layer2PolygonList.forEach(layer2Polygon=>{
-        layer1Main.push(layer2Polygon[0])
-      })
-      const shapes = layer2PolygonList.flatMap(layer2Polygon=>
-        layer2Polygon.slice(1).map(layer2Hole=>{
-          const layer1Holes = layer1Polygon.slice(1)
-          const includesLayer1Holes = layer1Holes.reduce((p,layer1Hole)=>{
-            const bool = P1includesP2(layer2Hole,layer1Hole)
-            if(bool){
-              p.push(layer1Hole)
-              return p
-            }
-            else{
-              return p
-            }
-          },[])
-          return [layer2Hole, ...includesLayer1Holes]
-        })
-      )
-      console.log("layer1Main",layer1Main)
-      console.log("shapes",shapes)
-      const sum = [].concat([layer1Main],shapes)
-      console.log("sum",sum)
-      return sum
-    }
-  })
-  console.log("layer",layer)
-  return layer
-
-}
