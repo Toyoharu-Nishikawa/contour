@@ -152,3 +152,58 @@ export const getCos_Sin_ExpPolygon = () => {
   return multiPolygon
 }
 
+const circle = (x, y)=> 10*Math.sin(2*Math.PI*10*Math.sqrt(x**2+y**2))
+
+export const getCirclePolygon = () => {
+  const n = 100;
+  const m = 100;
+  let k = 0;
+  const values = new Array(n * m);
+  for(let j = 0; j < m; ++j) {
+    for(let i = 0; i < n; ++i) {
+      const x = i/m - 0.5 
+      const y = j/n - 0.5 
+      values[k] = circle(x, y);
+      ++k;
+    }
+  }
+  
+  // 3. しきい値の設定
+  const thresholds = d3.range(0, 20).map(function(p) { return p-10; });
+  
+  // 4. データ変換
+  const contours = d3.contours()
+    .size([n, m])
+    .thresholds(thresholds);
+  
+  const multiPolygon = contours(values)
+  return multiPolygon
+}
+const circle2 = (x, y)=> 10*Math.cos(2*Math.PI*10*Math.sqrt(x**2+y**2))
+
+export const getCirclePolygon2 = () => {
+  const n = 100;
+  const m = 100;
+  let k = 0;
+  const values = new Array(n * m);
+  for(let j = 0; j < m; ++j) {
+    for(let i = 0; i < n; ++i) {
+      const x = i/m - 0.5 
+      const y = j/n - 0.5 
+      values[k] = circle2(x, y);
+      ++k;
+    }
+  }
+  
+  // 3. しきい値の設定
+  const thresholds = d3.range(0, 20).map(function(p) { return p-10; });
+  
+  // 4. データ変換
+  const contours = d3.contours()
+    .size([n, m])
+    .thresholds(thresholds);
+  
+  const multiPolygon = contours(values)
+  return multiPolygon
+}
+

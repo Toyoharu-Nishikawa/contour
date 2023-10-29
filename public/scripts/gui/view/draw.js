@@ -8,11 +8,17 @@ import {
   getNHimmelbauMultiPolygon,
   getCosSinPolygon,
   getCos_SinPolygon,
-  getCos_Sin_ExpPolygon
+  getCos_Sin_ExpPolygon,
+  getCirclePolygon,
+  getCirclePolygon2,
 } from "./multiPolygon.js"
 
+//const getMultiPolygonFunc = getCosSinPolygon
+//const getMultiPolygonFunc = getCos_SinPolygon
 //const getMultiPolygonFunc = getCos_Sin_ExpPolygon
-const getMultiPolygonFunc = getNHimmelbauMultiPolygon
+//const getMultiPolygonFunc = getNHimmelbauMultiPolygon
+//const getMultiPolygonFunc = getCirclePolygon
+const getMultiPolygonFunc = getCirclePolygon2
 
 const elements = {
   draw: document.getElementById("draw"),
