@@ -31,6 +31,7 @@ let initialWidth, initialHeight, initialWindowWidth, initialWindowHeight
 let resizeFlg
 
 const meshList = new Set()
+let contour = null
 
 
 export const initialize = () => {
@@ -94,7 +95,7 @@ export const init = () => {
   //const d3MultiPolygon = getHimmelbauMultiPolygon()
   //const d3MultiPolygon = getCosSinPolygon()
   //const d3MultiPolygon = getCos_SinPolygon()
-  const contour = createContour(d3MultiPolygon)
+  contour = createContour(d3MultiPolygon)
   scene.add(contour)
   meshList.add(contour)
 
@@ -145,6 +146,16 @@ const render = () => {
 	renderer.render( scene, camera );
 }
 
+export const clearContour = () => {
+  scene.remove(contour)
+}
+export const drawContour = (d3Contour) => {
+  contour = createContour(d3Contour)
+  scene.add(contour)
+  meshList.add(contour)
+
+
+}
 
 
 const resizeElement = () => {
